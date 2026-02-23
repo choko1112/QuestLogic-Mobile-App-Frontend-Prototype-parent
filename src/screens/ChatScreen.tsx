@@ -2,14 +2,14 @@ import React, { useMemo, useRef } from 'react';
 import {
   FlatList,
   ListRenderItem,
-  SafeAreaView,
   StyleSheet,
   Platform,
   StatusBar,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors } from '../theme/colors';
+import { useTheme } from '../context/AppContext';
 import type { ChatHistoryData, ChatListItem } from '../types/chat';
 import { dummyChatHistory } from '../data/chatData';
 import DateLabel from '../components/chat/DateLabel';
@@ -56,6 +56,8 @@ function flattenChatHistory(history: ChatHistoryData): ChatListItem[] {
  * - 新しいメッセージ受信時は flatListRef.current?.scrollToEnd() を呼び出す。
  */
 const ChatScreen: React.FC = () => {
+  const theme = useTheme();
+
   // ── データ（バックエンド API で差し替え予定） ──
   const chatHistory: ChatHistoryData = dummyChatHistory;
 
@@ -74,8 +76,14 @@ const ChatScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+      edges={['top']}
+    >
+      <StatusBar
+        barStyle={theme.background === '#000022' ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.background}
+      />
 
       <FlatList
         ref={flatListRef}
@@ -98,13 +106,13 @@ const ChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 24,
+    // タブバーがオーバーレイ（position:absolute）のため十分な余白を確保
+    paddingBottom: 120,
   },
   separator: {
     height: 0, // ChatBubble 自身に marginBottom: 16 があるので追加不要

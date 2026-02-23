@@ -9,6 +9,8 @@ interface HardShadowBoxProps {
   /** 下方向のオフセット (default: 8) */
   offsetY?: number;
   borderRadius?: number;
+  /** 影の色 (default: Colors.blackberry). ダークモード時は theme.border を渡す */
+  shadowColor?: string;
   /** 外側ラッパーに追加するスタイル */
   wrapperStyle?: ViewStyle;
   /** コンテンツ View に追加するスタイル */
@@ -29,6 +31,7 @@ const HardShadowBox: React.FC<HardShadowBoxProps> = ({
   offsetX = 6,
   offsetY = 8,
   borderRadius = 8,
+  shadowColor = Colors.blackberry,
   wrapperStyle,
   contentStyle,
 }) => {
@@ -55,7 +58,7 @@ const HardShadowBox: React.FC<HardShadowBoxProps> = ({
             left: offsetX,
             width: contentSize.width,
             height: contentSize.height,
-            backgroundColor: Colors.blackberry,
+            backgroundColor: shadowColor,
             borderRadius,
           }}
         />

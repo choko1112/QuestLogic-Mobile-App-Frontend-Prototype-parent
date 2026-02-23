@@ -8,13 +8,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Colors } from '../../../theme/colors';
+import { useTheme } from '../../../context/AppContext';
 
 interface ActionButtonProps {
   label: string;
   /**
    * ボタン左に表示するアイコン画像。
    * 絵文字を避け、必ず ImageSourcePropType を渡すこと。
-   * 例: require('../../../../asset/home/images/smiley-x-eyes.png')
    */
   iconSource: ImageSourcePropType;
   onPress: () => void;
@@ -31,6 +31,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   onPress,
   disabled = false,
 }) => {
+  const theme = useTheme();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -38,14 +40,13 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       disabled={disabled}
       style={[styles.outerBorder, disabled && styles.disabled]}
     >
-      <View style={styles.innerBorder}>
+      <View style={[styles.innerBorder, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Image
           source={iconSource}
           style={styles.icon}
           resizeMode="contain"
-          // TODO: Figma から PNG をエクスポートしたら require() で差し替え
         />
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -62,14 +63,12 @@ const styles = StyleSheet.create({
   },
   innerBorder: {
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.white,
   },
   icon: {
     width: 32,
@@ -77,7 +76,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: Colors.blackberry,
     letterSpacing: 0.32,
     fontWeight: '400',
   },

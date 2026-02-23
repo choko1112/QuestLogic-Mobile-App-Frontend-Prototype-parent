@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import { useTheme } from '../../context/AppContext';
 
 interface DateLabelProps {
   /** "今日" | "昨日" | "YYYY/MM/DD" */
@@ -10,12 +10,15 @@ interface DateLabelProps {
 /**
  * チャット画面の日付区切りラベル。
  * Figma デザイン: 画面中央、白背景の角丸ピル型、2px 黒枠線。
+ * ダークモード時は背景・枠線・文字色がテーマに連動。
  */
 const DateLabel: React.FC<DateLabelProps> = ({ label }) => {
+  const theme = useTheme();
+
   return (
     <View style={styles.wrapper}>
-      <View style={styles.pill}>
-        <Text style={styles.text}>{label}</Text>
+      <View style={[styles.pill, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.text, { color: theme.text }]}>{label}</Text>
       </View>
     </View>
   );
@@ -28,15 +31,12 @@ const styles = StyleSheet.create({
   },
   pill: {
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 16,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: Colors.white,
   },
   text: {
     fontSize: 12,
-    color: Colors.blackberry,
     letterSpacing: 0.36,
     fontWeight: '400',
     lineHeight: 12,

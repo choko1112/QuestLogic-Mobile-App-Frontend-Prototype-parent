@@ -40,44 +40,52 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
         { paddingBottom: insets.bottom + 8 },
       ]}
     >
-      {/* ハードシャドウ */}
-      <View style={styles.shadow} />
+      {/*
+       * tabBarWrapper に paddingRight:6 / paddingBottom:8 を持たせ、
+       * shadow を absolute で (top:8, left:6, right:0, bottom:0) に配置する。
+       * これにより shadow は tabBar の実寸と同じ高さ・幅になる。
+       *   right:0  → tabBarWrapper 右端 = tabBar 右端 + 6px のちょうどその位置
+       *   bottom:0 → tabBarWrapper 底端 = tabBar 底端 + 8px のちょうどその位置
+       */}
+      <View style={styles.tabBarWrapper}>
+        <View style={styles.shadow} />
 
-      <View style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const icons = ROUTE_ICONS[route.name];
-          const iconName: IconName = isFocused
-            ? icons?.active ?? 'ellipse'
-            : icons?.inactive ?? 'ellipse-outline';
+        <View style={styles.tabBar}>
+          {state.routes.map((route, index) => {
+            const isFocused = state.index === index;
+            const icons = ROUTE_ICONS[route.name];
+            const iconName: IconName = isFocused
+              ? icons?.active ?? 'ellipse'
+              : icons?.inactive ?? 'ellipse-outline';
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              style={styles.tabItem}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-            >
-              <Ionicons
-                name={iconName}
-                size={32}
-                color={Colors.blackberry}
-              />
-            </TouchableOpacity>
-          );
-        })}
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={onPress}
+                style={styles.tabItem}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+              >
+                <Ionicons
+                  name={iconName}
+                  size={32}
+                  color={Colors.blackberry}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -89,11 +97,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     backgroundColor: 'transparent',
   },
+  tabBarWrapper: {
+    paddingRight: 6,
+    paddingBottom: 8,
+  },
   shadow: {
     position: 'absolute',
-    top: 8 + 8,   // paddingTop + shadowOffsetY
-    left: 15 + 6, // paddingHorizontal + shadowOffsetX
-    right: 15 - 6,
+    top: 8,
+    left: 6,
+    right: 0,
     bottom: 0,
     backgroundColor: Colors.blackberry,
     borderRadius: 8,

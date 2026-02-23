@@ -4,12 +4,12 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Platform,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors } from '../theme/colors';
+import { useAppContext, useTheme } from '../context/AppContext';
 import type { CompletedTask, HomeworkImage } from '../types/home';
 
 import AccordionSection from '../components/home/AccordionSection';
@@ -24,15 +24,6 @@ import ExtendTimeModal from '../components/home/modals/ExtendTimeModal';
 // ファイル名の大文字小文字は実際のファイル名に合わせること（case-sensitive 環境対応）
 const ICON_LOCK   = require('../../asset/home/images/SmileyXEyes.png');
 const ICON_UNLOCK = require('../../asset/home/images/Smiley.png');
-
-// ─── 静的データ（バックエンド API で差し替え予定） ───────────────────────────────
-/**
- * 子供の名前。
- * 「ようこそ、{childName}さん」「今日の{childName}の終了タスク」
- * 「{childName}のゲーム制限時間」の全ラベルで共通利用。
- * → APIから取得する場合は useState / useEffect に変更する。
- */
-const CHILD_NAME = '田中';
 
 /**
  * 今日の終了タスク一覧。
@@ -70,6 +61,12 @@ type ModalType = 'none' | 'forceLock' | 'unlock' | 'extendTime';
 
 // ─── コンポーネント ────────────────────────────────────────────────────────────
 const HomeScreen: React.FC = () => {
+  // ── グローバルステート ──
+  // userName: 親の名前（Setting 画面で変更 → 「ようこそ、{userName}さん」に反映）
+  // childName: 子供の名前（タスク・ゲーム管理など子供関連ラベルに使用）
+  const { userName, childName } = useAppContext();
+  const theme = useTheme();
+
   // ── 静的データ (API 取得後に setState で更新) ──
   const [completedTasks] = useState<CompletedTask[]>(INITIAL_COMPLETED_TASKS);
   const [homeworkImages] = useState<HomeworkImage[]>(INITIAL_HOMEWORK_IMAGES);
@@ -114,30 +111,34 @@ const HomeScreen: React.FC = () => {
 
   // ── レンダリング ──
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+      edges={['top']}
+    >
+      <StatusBar
+        barStyle={theme.background === '#000022' ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.background}
+      />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 挨拶テキスト: childName 変数を動的に展開 */}
-        <Text style={styles.welcomeText}>ようこそ、{CHILD_NAME}さん</Text>
+        {/* 挨拶テキスト: userName (親の名前) を使用 */}
+        <Text style={[styles.welcomeText, { color: theme.text }]}>
+          ようこそ、{userName}さん
+        </Text>
 
-        {/* ① 今日の{childName}の終了タスク */}
-        <AccordionSection title={`今日の${CHILD_NAME}の終了タスク`}>
-          {/*
-           * completedTasks 配列を map() で展開。
-           * バックエンドから受け取った配列をそのまま渡せる構造。
-           */}
-          <TasksContent tasks={completedTasks} childName={CHILD_NAME} />
+        {/* ① 今日の{childName}の終了タスク ← 子供の名前を使用 */}
+        <AccordionSection title={`今日の${childName}の終了タスク`}>
+          <TasksContent tasks={completedTasks} childName={childName} />
         </AccordionSection>
 
         {/* ② スマホ・ゲーム管理 */}
         <AccordionSection title="スマホ・ゲーム管理">
           <GameManagementContent
-            childName={CHILD_NAME}
+            childName={childName}
             gameRemainingMinutes={gameRemainingMinutes}
             smartphoneRemainingMinutes={smartphoneRemainingMinutes}
             isForceLocked={isForceLocked}
@@ -149,10 +150,6 @@ const HomeScreen: React.FC = () => {
 
         {/* ③ 宿題の確認 */}
         <AccordionSection title="宿題の確認">
-          {/*
-           * homeworkImages 配列を渡す。
-           * 各要素の imageUrl が { uri: string } として Image に渡される。
-           */}
           <HomeworkContent images={homeworkImages} />
         </AccordionSection>
       </ScrollView>
@@ -163,7 +160,7 @@ const HomeScreen: React.FC = () => {
       <ConfirmModal
         visible={activeModal === 'forceLock'}
         title="強制ロックしますか？"
-        message={`${CHILD_NAME}のスマホ・ゲームを\n今すぐロックします。`}
+        message={`${childName}のスマホ・ゲームを\n今すぐロックします。`}
         iconSource={ICON_LOCK}
         confirmLabel="ロックする"
         onConfirm={handleForceLockConfirm}
@@ -174,7 +171,7 @@ const HomeScreen: React.FC = () => {
       <ConfirmModal
         visible={activeModal === 'unlock'}
         title="ロックを解除しますか？"
-        message={`${CHILD_NAME}のスマホ・ゲームの\nロックを解除します。`}
+        message={`${childName}のスマホ・ゲームの\nロックを解除します。`}
         iconSource={ICON_UNLOCK}
         confirmLabel="解除する"
         onConfirm={handleUnlockConfirm}
@@ -184,7 +181,7 @@ const HomeScreen: React.FC = () => {
       {/* 時間延長 */}
       <ExtendTimeModal
         visible={activeModal === 'extendTime'}
-        childName={CHILD_NAME}
+        childName={childName}
         onConfirm={handleExtendTimeConfirm}
         onCancel={closeModal}
       />
@@ -195,7 +192,6 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scrollView: {
@@ -204,11 +200,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 8,
     paddingTop: 16,
-    paddingBottom: 24,
+    // タブバーがオーバーレイ表示（position:absolute）のため、
+    // 最下部コンテンツがタブバーで隠れないよう十分な余白を確保
+    paddingBottom: 120,
   },
   welcomeText: {
     fontSize: 20,
-    color: Colors.blackberry,
     letterSpacing: 0.4,
     fontWeight: '400',
     marginBottom: 16,

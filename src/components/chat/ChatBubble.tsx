@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import { useTheme } from '../../context/AppContext';
 import { insertNewlinesAfterPunctuation } from '../../utils/textUtils';
 
 // ─── 影・テイルの定数 ──────────────────────────────────────────────────────────
@@ -22,22 +22,21 @@ interface ChatBubbleProps {
  * AIアシスタントのチャット吹き出しコンポーネント。
  *
  * 【実装方針】
- * - 吹き出し本体: 白背景・2px 黒枠線・borderRadius: 8
+ * - 吹き出し本体: theme.surface 背景・2px theme.border 枠線・borderRadius: 8
  * - Neo-Brutalism 影: onLayout でバブルの実寸を取得し、
- *   同サイズの黒 View を (SHADOW_X, SHADOW_Y) ずらして配置
+ *   同サイズの theme.border 色 View を (SHADOW_X, SHADOW_Y) ずらして配置
  * - テイル（左下の三角）: View の border トリックで作成し
  *   バブルの真下・左端に絶対配置
- *   - 外側（黒）: borderTopWidth + borderRightColor:transparent → 右下向き右三角形
- *   - 内側（白）: 一回り小さく重ねて「枠線」のように見せる
  * - 背景画像は一切使用しない
  */
 const ChatBubble: React.FC<ChatBubbleProps> = ({ text, isTyping }) => {
   const [bubbleSize, setBubbleSize] = useState({ width: 0, height: 0 });
+  const theme = useTheme();
 
   return (
     <View style={styles.container}>
       {/* 送信者ラベル */}
-      <Text style={styles.senderName}>AIアシスタント</Text>
+      <Text style={[styles.senderName, { color: theme.text }]}>AIアシスタント</Text>
 
       {/*
        * outerWrapper:
@@ -57,6 +56,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ text, isTyping }) => {
                 left: SHADOW_X,
                 width: bubbleSize.width,
                 height: bubbleSize.height,
+                backgroundColor: theme.border,
               },
             ]}
           />
@@ -64,7 +64,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ text, isTyping }) => {
 
         {/* ── バブル本体 ── */}
         <View
-          style={[styles.bubble, isTyping && styles.bubbleTyping]}
+          style={[
+            styles.bubble,
+            isTyping && styles.bubbleTyping,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             if (width !== bubbleSize.width || height !== bubbleSize.height) {
@@ -73,9 +77,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ text, isTyping }) => {
           }}
         >
           {isTyping ? (
-            <Text style={styles.typingDots}>•  •  •</Text>
+            <Text style={[styles.typingDots, { color: theme.text }]}>•  •  •</Text>
           ) : (
-            <Text style={styles.bubbleText}>
+            <Text style={[styles.bubbleText, { color: theme.text }]}>
               {insertNewlinesAfterPunctuation(text)}
             </Text>
           )}
@@ -84,27 +88,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ text, isTyping }) => {
         {/*
          * ── テイル（左下の三角形）──
          *
-         * View は 0×0。border トリックで三角形を描く:
-         *   borderTopWidth: TAIL_H    → 上方向に TAIL_H px 伸びる (バブル底辺に接する)
-         *   borderTopColor: blackberry → 黒で塗りつぶし
-         *   borderRightWidth: TAIL_W  → 右側を幅 TAIL_W px 確保
-         *   borderRightColor: transparent → 右側は透明 → 左下に向かう右三角形になる
-         *
-         * top = bubbleSize.height + TAIL_H:
-         *   この位置から borderTopWidth が「上」へ伸びるため
-         *   バブル底辺 〜 バブル底辺 + TAIL_H の空間を埋める
+         * 外側テイル（theme.border 色）と内側テイル（theme.surface 色）を重ねて
+         * 枠線付き三角形のように見せる。
          */}
         {bubbleSize.height > 0 && (
           <>
-            {/* 外側テイル（黒・枠線分） */}
+            {/* 外側テイル（枠線色） */}
             <View
               pointerEvents="none"
-              style={[styles.tailOuter, { top: bubbleSize.height + TAIL_H }]}
+              style={[
+                styles.tailOuter,
+                { top: bubbleSize.height + TAIL_H, borderTopColor: theme.border },
+              ]}
             />
-            {/* 内側テイル（白・塗りつぶし）→ 枠線のように見える */}
+            {/* 内側テイル（バブル背景色）→ 枠線のように見える */}
             <View
               pointerEvents="none"
-              style={[styles.tailInner, { top: bubbleSize.height + TAIL_H - 3 }]}
+              style={[
+                styles.tailInner,
+                { top: bubbleSize.height + TAIL_H - 3, borderTopColor: theme.surface },
+              ]}
             />
           </>
         )}
@@ -122,7 +125,6 @@ const styles = StyleSheet.create({
   senderName: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.blackberry,
     letterSpacing: 0.24,
     marginBottom: 4,
     marginLeft: 2,
@@ -133,33 +135,26 @@ const styles = StyleSheet.create({
   },
   shadow: {
     position: 'absolute',
-    backgroundColor: Colors.blackberry,
     borderRadius: 8,
   },
   bubble: {
-    backgroundColor: Colors.white,
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 8,
-    // 左下角をやや鋭く → テイルとの接続を自然に見せる
     borderBottomLeftRadius: 2,
     padding: 12,
   },
   bubbleTyping: {
-    // タイピング中は内容が少ないのでパディングを控えめに
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   bubbleText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.blackberry,
     lineHeight: 20,
     letterSpacing: 0.1,
   },
   typingDots: {
     fontSize: 16,
-    color: Colors.blackberry,
     letterSpacing: 5,
     lineHeight: 22,
   },
@@ -171,7 +166,6 @@ const styles = StyleSheet.create({
     width: 0,
     height: 0,
     borderTopWidth: TAIL_H,
-    borderTopColor: Colors.blackberry,
     borderRightWidth: TAIL_W,
     borderRightColor: 'transparent',
   },
@@ -181,7 +175,6 @@ const styles = StyleSheet.create({
     width: 0,
     height: 0,
     borderTopWidth: TAIL_H - 3,
-    borderTopColor: Colors.white,
     borderRightWidth: TAIL_W - 4,
     borderRightColor: 'transparent',
   },

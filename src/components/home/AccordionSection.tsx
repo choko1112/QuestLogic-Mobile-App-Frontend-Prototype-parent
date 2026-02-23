@@ -5,16 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
-
-// Android で LayoutAnimation を有効化
-if (Platform.OS === 'android') {
-  UIManager.setLayoutAnimationEnabledExperimental?.(true);
-}
+import { useTheme } from '../../context/AppContext';
 
 interface AccordionSectionProps {
   title: string;
@@ -27,6 +21,7 @@ interface AccordionSectionProps {
  * - 外側: 1px ピンク (#FC2865) ボーダー
  * - 内側: 2px ダーク (#000022) ボーダー
  * - 開閉時に + / − アイコンが切り替わる
+ * - ダークモード対応: useTheme() でテーマカラーを取得
  */
 const AccordionSection: React.FC<AccordionSectionProps> = ({
   title,
@@ -34,6 +29,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   initiallyOpen = false,
 }) => {
   const [isOpen, setIsOpen] = useState(initiallyOpen);
+  const theme = useTheme();
 
   const toggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -46,18 +42,22 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
       <TouchableOpacity
         onPress={toggle}
         activeOpacity={0.8}
-        style={styles.innerBorder}
+        style={[styles.innerBorder, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
         <Ionicons
           name={isOpen ? 'remove' : 'add'}
           size={24}
-          color={Colors.blackberry}
+          color={theme.text}
         />
       </TouchableOpacity>
 
       {/* コンテンツエリア: 開いているときだけ表示 */}
-      {isOpen && <View style={styles.content}>{children}</View>}
+      {isOpen && (
+        <View style={[styles.content, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {children}
+        </View>
+      )}
     </View>
   );
 };
@@ -72,28 +72,23 @@ const styles = StyleSheet.create({
   },
   innerBorder: {
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 4,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.white,
   },
   title: {
     fontSize: 20,
-    color: Colors.blackberry,
     letterSpacing: 0.4,
     fontWeight: '400',
     flexShrink: 1,
     marginRight: 8,
   },
   content: {
-    backgroundColor: Colors.white,
     borderLeftWidth: 2,
     borderRightWidth: 2,
     borderBottomWidth: 2,
-    borderColor: Colors.blackberry,
   },
 });
 

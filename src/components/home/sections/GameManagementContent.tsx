@@ -6,8 +6,7 @@ import ActionButton from './ActionButton';
 // ─── アイコン画像 ──────────────────────────────────────────────────────────────
 // Figma からエクスポートされた PNG を使用（asset/home/images/ に配置済み）
 // ファイル名はすべて英字・大文字小文字に注意（case-sensitive 環境対応）
-const ICON_GAME       = require('../../../../asset/home/images/game-timer.png');
-const ICON_SMARTPHONE = require('../../../../asset/home/images/smartphone-timer.png');
+const ICON_BELL       = require('../../../../asset/home/images/BellRinging.png');
 const ICON_LOCK       = require('../../../../asset/home/images/SmileyXEyes.png');
 const ICON_UNLOCK     = require('../../../../asset/home/images/Smiley.png');
 const ICON_SLIDERS    = require('../../../../asset/home/images/sliders.png');
@@ -38,16 +37,16 @@ const GameManagementContent: React.FC<GameManagementContentProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      {/* ゲーム残り時間通知カード (game-timer.png アイコン) */}
+      {/* ゲーム残り時間通知カード (BellRinging.png アイコン) */}
       <NotificationCard
-        iconSource={ICON_GAME}
+        iconSource={ICON_BELL}
         label={`${childName}のゲーム制限時間`}
         remainingMinutes={gameRemainingMinutes}
       />
 
-      {/* スマホ残り時間通知カード (smartphone-timer.png アイコン) */}
+      {/* スマホ残り時間通知カード (BellRinging.png アイコン) */}
       <NotificationCard
-        iconSource={ICON_SMARTPHONE}
+        iconSource={ICON_BELL}
         label={`${childName}のスマホ制限時間`}
         remainingMinutes={smartphoneRemainingMinutes}
       />

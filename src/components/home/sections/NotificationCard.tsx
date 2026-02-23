@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, ImageSourcePropType, StyleSheet } from 'react-native';
 import HardShadowBox from '../../common/HardShadowBox';
-import { Colors } from '../../../theme/colors';
+import { useTheme } from '../../../context/AppContext';
 
 interface NotificationCardProps {
   /** カード左に表示するアイコン画像。Figma エクスポートの PNG を require() で渡す */
@@ -16,12 +16,14 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   label,
   remainingMinutes,
 }) => {
+  const theme = useTheme();
+
   return (
-    <HardShadowBox offsetX={6} offsetY={8} borderRadius={8}>
-      <View style={styles.card}>
+    <HardShadowBox offsetX={6} offsetY={8} borderRadius={8} shadowColor={theme.border}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         {/* アイコン (Image コンポーネントで表示 / 絵文字不使用) */}
-        <View style={styles.iconContainer}>
-          <View style={styles.iconBorder}>
+        <View style={[styles.iconContainer, { borderRightColor: theme.border }]}>
+          <View style={[styles.iconBorder, { borderColor: theme.border }]}>
             <Image
               source={iconSource}
               style={styles.iconImage}
@@ -33,10 +35,10 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
         {/* メッセージエリア */}
         <View style={styles.messageArea}>
           <View style={styles.topRow}>
-            <Text style={styles.label} numberOfLines={1}>{label}</Text>
-            <Text style={styles.dateLabel}>本日</Text>
+            <Text style={[styles.label, { color: theme.text }]} numberOfLines={1}>{label}</Text>
+            <Text style={[styles.dateLabel, { color: theme.text }]}>本日</Text>
           </View>
-          <Text style={styles.timeText}>残り{remainingMinutes}分</Text>
+          <Text style={[styles.timeText, { color: theme.text }]}>残り{remainingMinutes}分</Text>
         </View>
       </View>
     </HardShadowBox>
@@ -47,16 +49,13 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 8,
     height: 80,
     overflow: 'hidden',
   },
   iconContainer: {
     borderRightWidth: 2,
-    borderRightColor: Colors.blackberry,
     alignSelf: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',
@@ -64,7 +63,6 @@ const styles = StyleSheet.create({
   },
   iconBorder: {
     borderWidth: 2,
-    borderColor: Colors.blackberry,
     borderRadius: 4,
     padding: 8,
     alignItems: 'center',
@@ -87,19 +85,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: Colors.blackberry,
     letterSpacing: 0.32,
     flex: 1,
   },
   dateLabel: {
     fontSize: 12,
-    color: Colors.blackberry,
     letterSpacing: 0.36,
     marginLeft: 4,
   },
   timeText: {
     fontSize: 28,
-    color: Colors.textDark,
     fontWeight: '400',
     textAlign: 'center',
   },

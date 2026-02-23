@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { CompletedTask } from '../../../types/home';
-import { Colors } from '../../../theme/colors';
+import { useTheme } from '../../../context/AppContext';
 
 interface TasksContentProps {
   tasks: CompletedTask[];
@@ -9,11 +9,15 @@ interface TasksContentProps {
 }
 
 /** アコーディオン「今日の△△の終了タスク」の展開コンテンツ */
-const TasksContent: React.FC<TasksContentProps> = ({ tasks, childName }) => {
+const TasksContent: React.FC<TasksContentProps> = ({ tasks }) => {
+  const theme = useTheme();
+
   if (tasks.length === 0) {
     return (
-      <View style={styles.emptyRow}>
-        <Text style={styles.emptyText}>今日の終了タスクはまだありません</Text>
+      <View style={[styles.emptyRow, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.emptyText, { color: theme.text }]}>
+          今日の終了タスクはまだありません
+        </Text>
       </View>
     );
   }
@@ -25,10 +29,11 @@ const TasksContent: React.FC<TasksContentProps> = ({ tasks, childName }) => {
           key={task.id}
           style={[
             styles.row,
-            index < tasks.length - 1 && styles.rowBorder,
+            { backgroundColor: theme.surface },
+            index < tasks.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.border },
           ]}
         >
-          <Text style={styles.taskText}>
+          <Text style={[styles.taskText, { color: theme.text }]}>
             {task.subject}：{task.description}
           </Text>
         </View>
@@ -41,27 +46,19 @@ const styles = StyleSheet.create({
   row: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    backgroundColor: Colors.white,
     minHeight: 48,
     justifyContent: 'center',
   },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.blackberry,
-  },
   taskText: {
     fontSize: 16,
-    color: Colors.blackberry,
     lineHeight: 24,
   },
   emptyRow: {
     paddingHorizontal: 12,
     paddingVertical: 16,
-    backgroundColor: Colors.white,
   },
   emptyText: {
     fontSize: 14,
-    color: Colors.blackberry,
     opacity: 0.6,
   },
 });
